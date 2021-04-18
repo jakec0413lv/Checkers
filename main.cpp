@@ -15,7 +15,7 @@ do{
     newGame.showBoard();
     newGame.selectPiece("red");
     newGame.selectPiece("black");
-    if(newGame.getRemainingPieces("red") == 0 || newGAme.getRemainingPieces("black") == 0){
+    if(newGame.getRemainingPieces("red") == 0 || newGame.getRemainingPieces("black") == 0){
         playing = false;
     }
 }while(playing);

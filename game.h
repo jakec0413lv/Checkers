@@ -186,7 +186,6 @@ void Game::selectPiece(string color){
 
     showBoard();
 
-
     }while(!(correctPiece));
 
     do{
@@ -202,11 +201,19 @@ void Game::selectPiece(string color){
 
     cout << "Pick a column to move to: " << '\n';
         cin >> j_m;
-    while(!cin || !(checkValidColumn(i_m))){
+    while(!cin || !(checkValidColumn(j_m))){
         cin.clear();
         cin.ignore(40, '\n'); 
         cout << "Pick to column to move to: " << '\n';
         cin >> i_m;
+    }
+    if(color == "red" && i_m < i ){
+        cout << "Invalid Move" << '\n';
+        continue;
+    }
+    if(color == "black" && i_m > i ){
+        cout << "Invalid Move" << '\n';
+        continue;
     }
 //Check for invalid/asymmetric moves
     if((abs(i - i_m) > 2) || (abs(j - j_m) > 2) || (abs(i - i_m) != abs(j - j_m)) || (i - i_m == 0) || (j-j_m == 0)){
@@ -230,7 +237,34 @@ void Game::selectPiece(string color){
         if (board[i_m - 1][j_m + 1] == 'B'){
             board[i_m - 1][j_m + 1] = ' ';
         }
-        board[i_m][j_m] = 'R';
+        board[i_m][j_m] = 'X';
+        i = i_m;
+        j = j_m;
+        while((checkPossibleJumpLeft("red", i, j) || checkPossibleJumpRight("red", i, j))){
+            cout << "Second jump possible: " << '\n';   
+            cout << "Select a row: " << '\n';
+                cin >> i_m;
+            while(!(checkValidRow(i_m)) && !cin && abs(i-i_m) != 2){
+                cout << "Select a valid row" << '\n';
+            }  
+            cout << "Select a column: " << '\n';
+                cin >> j_m;
+            while(!(checkValidColumn(j_m)) && !cin && abs(j-j_m) != 2){
+                cout << "Select a valid row" << '\n';
+            }
+            board[i][j] = ' ';
+            if(board[i_m - 1][j_m - 1] == 'B'){
+             board[i_m - 1][j_m - 1] = ' ';
+            }
+            if (board[i_m - 1][j_m + 1] == 'B'){
+                board[i_m - 1][j_m + 1] = ' ';
+            }
+            board[i_m][j_m] = 'X';
+            i = i_m;
+            j = j_m;
+            blackPiecesRemaining--;
+        }
+        board[i][j] = 'R';
         validMove = true;
         blackPiecesRemaining--;
     }
@@ -250,14 +284,44 @@ void Game::selectPiece(string color){
         if (board[i_m + 1][j_m + 1] == 'R'){
             board[i_m + 1][j_m + 1] = ' ';
         }
-        board[i_m][j_m] = 'B';
+        board[i_m][j_m] = 'X';
+        i = i_m;
+        j = j_m;
+        showBoard();
+        while((checkPossibleJumpLeft("black", i, j) || checkPossibleJumpRight("black", i, j))){
+            cout << "Second jump possible: " << '\n';   
+            cout << "Select a row: " << '\n';
+                cin >> i_m;
+            while(!(checkValidRow(i_m)) && !cin && abs(i-i_m) != 2){
+                cout << "Select a valid row" << '\n';
+            }  
+            cout << "Select a column: " << '\n';
+                cin >> j_m;
+            while(!(checkValidColumn(j_m)) && !cin && abs(j-j_m) != 2){
+                cout << "Select a valid row" << '\n';
+            }
+            board[i][j] = ' ';
+            if(board[i_m + 1][j_m - 1] == 'R'){
+             board[i_m + 1][j_m - 1] = ' ';
+            }
+            if (board[i_m + 1][j_m + 1] == 'R'){
+                board[i_m + 1][j_m + 1] = ' ';
+            }
+            board[i_m][j_m] = 'X';
+            i = i_m;
+            j = j_m;
+            redPiecesRemaining--;
+            showBoard();
+        }
+        board[i][j] = 'B';
         validMove = true;
         redPiecesRemaining--;
     }
     }
 
     }while(!(validMove));
-
+    cout << "Red Pieces Remaining: " << redPiecesRemaining <<'\n';
+    cout << "Black Pieces Remaining: " << blackPiecesRemaining << '\n';
     showBoard();
     
 }

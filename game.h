@@ -424,11 +424,36 @@ int Game::getRemainingPieces(string color){
 }
 
 void Game::kingMove(string color, int i, int j){
+    bool validMove = false;
+    int i_m, j_m;
+    
+    do{
     if(color == "black"){
-        cout << "There is a King at " << i << " " << j << '\n';
+        cout << "Choose a row to move to: ";
+            cin >> i_m;
+        while(!cin || checkValidRow(i_m)){
+        cout << "Choose a row to move to: ";
+            cin >> i_m;
+        }
+        cout << "Choose a column to move to: ";
+            cin >> j_m;
+        while(!cin || checkValidRow(j_m)){
+        cout << "Choose a column to move to: ";
+            cin >> j_m;
+        }
+        if(abs(j-j_m) > 2 || abs(i-i_m) > 2 || i-i_m == 0 || j-j_m == 0){
+            cout << "Invalid Move" << '\n';
+            continue;
+        }
+        if(abs(i-i_m) == 1 && board[i_m][j_m] == ' '){
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'Q';
+            return;
+        }
     }
 
     if(color == "red"){
         cout << "There is a King at " << i << " " << j << '\n';
     }
+    }while(!(validMove))
 }

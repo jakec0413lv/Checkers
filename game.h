@@ -23,6 +23,8 @@ public:
     bool checkPossibleJumpLeft(string color, int i, int j);
     bool checkPossibleJumpRight(string color, int i, int j);
 
+    void kingMove(string, int, int);
+
     int getRemainingPieces(string );
 };
 
@@ -147,6 +149,10 @@ void Game::selectPiece(string color){
     }
 
     if(color == "red"){
+        if(board[i][j] == 'K'){
+            kingMove("red", i, j);
+            return;
+        }
         if(board[i][j] == 'R'){
             if(checkPossibleMoves("red", i, j)){
                cout << "Selected piece marked with an X" << '\n';
@@ -167,6 +173,10 @@ void Game::selectPiece(string color){
     }
 
     if(color == "black"){
+        if(board[i][j] == 'Q'){
+            kingMove("black", i, j);
+            return;
+        }
         if(board[i][j] == 'B'){
             if(checkPossibleMoves("black", i, j)){
                cout << "Selected piece marked with an X" << '\n';
@@ -233,8 +243,7 @@ void Game::selectPiece(string color){
         board[i][j] = ' ';
         if(board[i_m - 1][j_m - 1] == 'B'){
             board[i_m - 1][j_m - 1] = ' ';
-        }
-        if (board[i_m - 1][j_m + 1] == 'B'){
+        }else{
             board[i_m - 1][j_m + 1] = ' ';
         }
         board[i_m][j_m] = 'X';
@@ -255,8 +264,7 @@ void Game::selectPiece(string color){
             board[i][j] = ' ';
             if(board[i_m - 1][j_m - 1] == 'B'){
              board[i_m - 1][j_m - 1] = ' ';
-            }
-            if (board[i_m - 1][j_m + 1] == 'B'){
+            }else{
                 board[i_m - 1][j_m + 1] = ' ';
             }
             board[i_m][j_m] = 'X';
@@ -264,7 +272,11 @@ void Game::selectPiece(string color){
             j = j_m;
             blackPiecesRemaining--;
         }
-        board[i][j] = 'R';
+        if(i == 7){
+            board[i][j] = 'K';
+        }else{
+           board[i][j] = 'R'; 
+        }
         validMove = true;
         blackPiecesRemaining--;
     }
@@ -280,9 +292,8 @@ void Game::selectPiece(string color){
         board[i][j] = ' ';
         if(board[i_m + 1][j_m - 1] == 'R'){
             board[i_m + 1][j_m - 1] = ' ';
-        }
-        if (board[i_m + 1][j_m + 1] == 'R'){
-            board[i_m + 1][j_m + 1] = ' ';
+        }else{
+            board[i_m + 1][j_m + 1] = ' '; 
         }
         board[i_m][j_m] = 'X';
         i = i_m;
@@ -303,8 +314,7 @@ void Game::selectPiece(string color){
             board[i][j] = ' ';
             if(board[i_m + 1][j_m - 1] == 'R'){
              board[i_m + 1][j_m - 1] = ' ';
-            }
-            if (board[i_m + 1][j_m + 1] == 'R'){
+            }else{
                 board[i_m + 1][j_m + 1] = ' ';
             }
             board[i_m][j_m] = 'X';
@@ -313,7 +323,11 @@ void Game::selectPiece(string color){
             redPiecesRemaining--;
             showBoard();
         }
-        board[i][j] = 'B';
+        if(i == 0){
+            board[i][j] = 'Q';
+        }else{
+           board[i][j] = 'B'; 
+        }
         validMove = true;
         redPiecesRemaining--;
     }
@@ -406,5 +420,15 @@ int Game::getRemainingPieces(string color){
         return redPiecesRemaining;
     }else{
         return blackPiecesRemaining;
+    }
+}
+
+void Game::kingMove(string color, int i, int j){
+    if(color == "black"){
+        cout << "There is a King at " << i << " " << j << '\n';
+    }
+
+    if(color == "red"){
+        cout << "There is a King at " << i << " " << j << '\n';
     }
 }

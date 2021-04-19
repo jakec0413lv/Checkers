@@ -22,8 +22,13 @@ public:
     bool checkPossibleMoves(string, int, int);
     bool checkPossibleJumpLeft(string color, int i, int j);
     bool checkPossibleJumpRight(string color, int i, int j);
+    bool kingDoubleJumpCheck(string , int , int );
 
     void kingMove(string, int, int);
+    bool kingJumpForwardRight(string, int &, int &, int , int );
+    bool kingJumpForwardLeft(string, int &, int &, int , int );
+    bool kingJumpBackwardLeft(string, int &, int &, int , int );
+    bool kingJumpBackwardRight(string, int &, int &, int , int );
 
     int getRemainingPieces(string );
 };
@@ -71,6 +76,9 @@ Game::Game(){
             }
         }   
     }
+    board[2][0] = 'K';
+    board[6][4] = ' ';
+    board[3][1] = 'B';
 }
 
 void Game::showBoard(){
@@ -79,9 +87,8 @@ void Game::showBoard(){
         cout << i << " ";
     }
     cout << '\n';
-    cout << "------------------" << '\n';
     for(int i = 0; i < rows; i++){
-        cout << i << "|";
+        cout << i << ' ';
         for(int j = 0; j < cols; j++){
             cout << board[i][j] << " ";
         }
@@ -115,7 +122,10 @@ void Game::selectPiece(string color){
 
     bool correctPiece = false;
     bool validMove = false;
+    
 
+    cout << "Red Pieces Remaining: " << redPiecesRemaining <<'\n';
+    cout << "Black Pieces Remaining: " << blackPiecesRemaining << '\n';
     do{
 
     if(color == "red"){
@@ -144,13 +154,14 @@ void Game::selectPiece(string color){
     while(!cin || !(checkValidColumn(j))){
     cin.clear();
     cin.ignore(40, '\n'); 
-    cout << "Select color for desired piece: " << '\n';
+    cout << "Select column for desired piece: " << '\n';
         cin >> j;
     }
 
     if(color == "red"){
         if(board[i][j] == 'K'){
             kingMove("red", i, j);
+            showBoard();
             return;
         }
         if(board[i][j] == 'R'){
@@ -175,6 +186,7 @@ void Game::selectPiece(string color){
     if(color == "black"){
         if(board[i][j] == 'Q'){
             kingMove("black", i, j);
+            showBoard();
             return;
         }
         if(board[i][j] == 'B'){
@@ -215,7 +227,7 @@ void Game::selectPiece(string color){
         cin.clear();
         cin.ignore(40, '\n'); 
         cout << "Pick to column to move to: " << '\n';
-        cin >> i_m;
+        cin >> j_m;
     }
     if(color == "red" && i_m < i ){
         cout << "Invalid Move" << '\n';
@@ -241,7 +253,7 @@ void Game::selectPiece(string color){
     //Jump over opposing piece
     if((checkPossibleJumpLeft("red", i, j) || checkPossibleJumpRight("red", i, j))  && (abs(i - i_m) == 2) && (abs(j - j_m)) == 2){
         board[i][j] = ' ';
-        if(board[i_m - 1][j_m - 1] == 'B'){
+        if(board[i_m - 1][j_m - 1] == 'B' || board[i_m - 1][j_m - 1] == 'Q'){
             board[i_m - 1][j_m - 1] = ' ';
         }else{
             board[i_m - 1][j_m + 1] = ' ';
@@ -249,23 +261,37 @@ void Game::selectPiece(string color){
         board[i_m][j_m] = 'X';
         i = i_m;
         j = j_m;
+
         while((checkPossibleJumpLeft("red", i, j) || checkPossibleJumpRight("red", i, j))){
+            showBoard();
             cout << "Second jump possible: " << '\n';   
             cout << "Select a row: " << '\n';
                 cin >> i_m;
-            while(!(checkValidRow(i_m)) && !cin && abs(i-i_m) != 2){
+            while(!(checkValidRow(i_m)) || !cin){
                 cout << "Select a valid row" << '\n';
             }  
             cout << "Select a column: " << '\n';
                 cin >> j_m;
-            while(!(checkValidColumn(j_m)) && !cin && abs(j-j_m) != 2){
+            while(!(checkValidColumn(j_m)) || !cin ){
                 cout << "Select a valid row" << '\n';
             }
+            if(board[i_m][j_m] != ' '){
+                cout << "Incorrect move input for second jump! " << '\n';
+                continue;
+            }
+            if(i-i_m != -2){
+                cout << "Invalid row input." << '\n';
+                continue;
+            }
+            if(j-j_m != 2 && j-j_m != -2 ){
+                cout << "Invalid column input" <<'\n';
+                continue;
+            }
             board[i][j] = ' ';
-            if(board[i_m - 1][j_m - 1] == 'B'){
-             board[i_m - 1][j_m - 1] = ' ';
-            }else{
-                board[i_m - 1][j_m + 1] = ' ';
+            if(j-j_m == 2){
+                board[i + 1][j-1] = ' ';
+            } else{
+                board[i + 1][j + 1] = ' ';
             }
             board[i_m][j_m] = 'X';
             i = i_m;
@@ -290,7 +316,7 @@ void Game::selectPiece(string color){
     }
     if((checkPossibleJumpLeft("black", i, j) || checkPossibleJumpRight("black", i, j))  && (abs(i - i_m) == 2) && (abs(j - j_m)) == 2){
         board[i][j] = ' ';
-        if(board[i_m + 1][j_m - 1] == 'R'){
+        if(board[i_m + 1][j_m - 1] == 'R' || board[i_m + 1][j_m - 1] == 'K' ){
             board[i_m + 1][j_m - 1] = ' ';
         }else{
             board[i_m + 1][j_m + 1] = ' '; 
@@ -303,19 +329,31 @@ void Game::selectPiece(string color){
             cout << "Second jump possible: " << '\n';   
             cout << "Select a row: " << '\n';
                 cin >> i_m;
-            while(!(checkValidRow(i_m)) && !cin && abs(i-i_m) != 2){
+            while(!(checkValidRow(i_m)) && !cin && abs(i-i_m) < 2){
                 cout << "Select a valid row" << '\n';
             }  
             cout << "Select a column: " << '\n';
                 cin >> j_m;
-            while(!(checkValidColumn(j_m)) && !cin && abs(j-j_m) != 2){
+            while(!(checkValidColumn(j_m)) && !cin && abs(j-j_m) < 2){
                 cout << "Select a valid row" << '\n';
             }
+            if(board[i_m][j_m] != ' '){
+                cout << "Space not empty! " << '\n';
+                continue;
+            }
+            if(i-i_m != 2){
+                cout << "Invalid row input." << '\n';
+                continue;
+            }
+            if(j-j_m != 2 && j-j_m != -2 ){
+                cout << "Invalid column input" <<'\n';
+                continue;
+            }
             board[i][j] = ' ';
-            if(board[i_m + 1][j_m - 1] == 'R'){
-             board[i_m + 1][j_m - 1] = ' ';
-            }else{
-                board[i_m + 1][j_m + 1] = ' ';
+            if(j-j_m == 2){
+                board[i -1][j-1] = ' ';
+            } else{
+                board[i - 1][j + 1] = ' ';
             }
             board[i_m][j_m] = 'X';
             i = i_m;
@@ -382,14 +420,14 @@ bool Game::checkPossibleMoves(string color, int i, int j){
 bool Game::checkPossibleJumpLeft(string color, int i, int j){
     if(color == "red"){
         if(checkValidRow(i + 2) && checkValidColumn(j - 2)){
-            if(board[i + 1][j - 1] == 'B' && board[i + 2][j - 2] == ' '){
+            if((board[i + 1][j - 1] == 'B' || board[i + 1][j - 1] == 'Q')  && board[i + 2][j - 2] == ' '){
                 return true;
             }
         }
 }
     if(color == "black"){
         if(checkValidRow(i - 2) && checkValidColumn(j - 2)){
-            if(board[i  -1][j - 1] == 'R' && board[i - 2][j - 2] == ' '){
+            if((board[i  - 1][j - 1] == 'R' || board[i - 1][j - 1] == 'K') && board[i - 2][j - 2] == ' '){
                 return true;
             }
         }
@@ -400,14 +438,14 @@ return false;
 bool Game::checkPossibleJumpRight(string color, int i, int j){
     if(color == "red"){
         if(checkValidRow(i + 2) && checkValidColumn(j + 2)){
-            if(board[i + 1][j + 1] == 'B' && board[i + 2][j + 2] == ' '){
+            if((board[i + 1][j + 1] == 'B' ||board[i + 1][j + 1] == 'Q') && board[i + 2][j + 2] == ' '){
                 return true;
             }
         }
 }
     if(color == "black"){
         if(checkValidRow(i - 2) && checkValidColumn(j + 2)){
-            if(board[i - 1][j + 1] == 'R' && board[i - 2][j + 2] == ' '){
+            if((board[i - 1][j + 1] == 'R' || board[i - 1][j + 1] == 'K') && board[i - 2][j + 2] == ' '){
                 return true;
             }
         }
@@ -426,22 +464,22 @@ int Game::getRemainingPieces(string color){
 void Game::kingMove(string color, int i, int j){
     bool validMove = false;
     int i_m, j_m;
-    
+    cout << "King Move" << '\n';
     do{
     if(color == "black"){
         cout << "Choose a row to move to: ";
             cin >> i_m;
-        while(!cin || checkValidRow(i_m)){
+        while(!cin || !(checkValidRow(i_m))){
         cout << "Choose a row to move to: ";
             cin >> i_m;
         }
         cout << "Choose a column to move to: ";
             cin >> j_m;
-        while(!cin || checkValidRow(j_m)){
+        while(!cin || !(checkValidColumn(j_m))){
         cout << "Choose a column to move to: ";
             cin >> j_m;
         }
-        if(abs(j-j_m) > 2 || abs(i-i_m) > 2 || i-i_m == 0 || j-j_m == 0){
+        if(abs(j-j_m) > 2 || abs(i-i_m) > 2 || i-i_m == 0 || j-j_m == 0 || abs(i-i_m) != abs(j-j_m)){
             cout << "Invalid Move" << '\n';
             continue;
         }
@@ -450,10 +488,264 @@ void Game::kingMove(string color, int i, int j){
             board[i_m][j_m] = 'Q';
             return;
         }
+        if(abs(i-i_m) == 1 && board[i_m][j_m] == ' '){
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'Q';
+            return;
+        }
+        //Jump Forward Right
+        if(board[i - 1][j + 1] == 'R' && board[i_m][j_m] == ' ' && i_m - i == -2 && j_m - j == 2 ){
+            validMove = kingJumpForwardRight(color, i, j, i_m, j_m);
+        }
+        //Jump Forward Left
+        if(board[i - 1][j - 1] == 'R' && board[i_m][j_m] == ' '&& i_m - i == -2 && j_m - j == -2 ){
+            validMove = kingJumpForwardLeft(color, i, j, i_m, j_m);
+        }
+        //Jump Backward Left
+        if(board[i+1][j-1] == 'R' && board[i_m][j_m] == ' ' && i_m - i == 2 && j_m - j == -2 ){
+            validMove = kingJumpBackwardLeft(color, i, j, i_m, j_m);
+    
+        }
+        //Jump Backward Right
+        if(board[i+1][j+1] == 'R' && board[i_m][j_m] == ' ' && i_m - i == 2 && j_m - j == 2 ){
+            validMove = kingJumpBackwardRight(color, i, j, i_m, j_m);
+        }
+        
+        while(kingDoubleJumpCheck("black", i, j)){
+                    showBoard();
+                    cout << "Second jump possible: " << '\n';
+                    cout << "Select a row: " << '\n';
+                        cin >> i_m;
+                    while(!cin || !(checkValidRow(i_m))){
+                        cin.clear();
+                        cin.ignore(40, '\n'); 
+                        cout << "Select a row: " << '\n';
+                        cin >> i_m;
+                    }
+                    cout << "Select a column: " << '\n';
+                        cin >> j_m;
+                    while(!cin || !(checkValidColumn(j_m))){
+                        cin.clear();
+                        cin.ignore(40, '\n'); 
+                        cout << "Select a column: " << '\n';
+                        cin >> j_m;
+                    }
+                    if(board[i_m][j_m] != ' '|| abs(i - i_m) != 2 || abs(j-j_m) != 2){
+                        cout << "Not the second jump coordinates." << '\n';
+                        continue;
+                    }
+                    //Jump Forward Right
+                    if(board[i - 1][j + 1] == 'R' && board[i_m][j_m] == ' ' && i_m - i == -2 && j_m - j == 2 ){
+                        kingJumpBackwardRight(color, i, j, i_m, j_m);
+                        }
+        //Jump Forward Left
+                    if(board[i - 1][j - 1] == 'R' && board[i_m][j_m] == ' '&& i_m - i == -2 && j_m - j == -2 ){
+                        kingJumpForwardLeft(color, i, j, i_m, j_m);
+        }
+        //Jump Backward Left
+                    if(board[i+1][j-1] == 'R' && board[i_m][j_m] == ' ' && i_m - i == 2 && j_m - j == -2 ){
+                        kingJumpBackwardLeft(color, i, j, i_m, j_m);
+                    }
+        //Jump Backward Right
+                    if(board[i+1][j+1] == 'R' && board[i_m][j_m] == ' ' && i_m - i == 2 && j_m - j == 2 ){
+                        kingJumpBackwardRight(color, i, j, i_m, j_m);
+                    }
+            }    
     }
-
     if(color == "red"){
-        cout << "There is a King at " << i << " " << j << '\n';
+        cout << "Choose a row to move to: ";
+            cin >> i_m;
+        while(!cin || !(checkValidRow(i_m))){
+        cout << "Choose a row to move to: ";
+            cin >> i_m;
+        }
+        cout << "Choose a column to move to: ";
+            cin >> j_m;
+        while(!cin || !(checkValidRow(j_m))){
+        cout << "Choose a column to move to: ";
+            cin >> j_m;
+        }
+        if(abs(j-j_m) > 2 || abs(i-i_m) > 2 || i-i_m == 0 || j-j_m == 0 || abs(i-i_m) != abs(j-j_m)){
+            cout << "Invalid Move" << '\n';
+            continue;
+        }
+        if(abs(i-i_m) == 1 && board[i_m][j_m] == ' '){
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'K';
+            return;
+        }
+        //Jump Forward Right
+        if(board[i - 1][j + 1] == 'B' && board[i_m][j_m] == ' ' && i_m - i == -2 && j_m - j == 2 ){
+            validMove = kingJumpForwardRight(color, i, j, i_m, j_m);
+        }
+        //Jump Forward Left
+        if(board[i - 1][j - 1] == 'B' && board[i_m][j_m] == ' '&& i_m - i == -2 && j_m - j == -2 ){
+            validMove = kingJumpForwardLeft(color, i, j, i_m, j_m);
+        }
+        //Jump Backward Left
+        if(board[i+1][j-1] == 'B' && board[i_m][j_m] == ' ' && i_m - i == 2 && j_m - j == -2 ){
+            validMove = kingJumpBackwardLeft(color, i, j, i_m, j_m);
+        }
+        //Jump Backward Right
+        if(board[i+1][j+1] == 'B' && board[i_m][j_m] == ' ' && i_m - i == 2 && j_m - j == 2 ){
+            validMove = kingJumpBackwardRight(color, i, j, i_m, j_m);
+        }
+        while(kingDoubleJumpCheck("red", i, j)){
+                    showBoard();
+                    cout << "Second jump possible: " << '\n';
+                    cout << "Select a row: " << '\n';
+                        cin >> i_m;
+                    while(!cin || !(checkValidRow(i_m))){
+                        cin.clear();
+                        cin.ignore(40, '\n'); 
+                        cout << "Select a row: " << '\n';
+                        cin >> i_m;
+                    }
+                    cout << "Select a column: " << '\n';
+                        cin >> j_m;
+                    while(!cin || !(checkValidColumn(j_m))){
+                        cin.clear();
+                        cin.ignore(40, '\n'); 
+                        cout << "Select a column: " << '\n';
+                        cin >> j_m;
+                    }
+                    if(board[i_m][j_m] != ' ' || abs(i - i_m) != 2 || abs(j-j_m) != 2){
+                        cout << "Not the second jump coordinates." << '\n';
+                        continue;
+                    }
+
+                    //Jump Forward Right
+        if(board[i - 1][j + 1] == 'B' && board[i_m][j_m] == ' ' && i_m - i == -2 && j_m - j == 2 ){
+            kingJumpForwardRight(color, i, j, i_m, j_m);
+        }
+        //Jump Forward Left
+        if(board[i - 1][j - 1] == 'B' && board[i_m][j_m] == ' '&& i_m - i == -2 && j_m - j == -2 ){
+            kingJumpForwardLeft(color, i, j, i_m, j_m);
+        }
+        //Jump Backward Left
+        if(board[i+1][j-1] == 'B' && board[i_m][j_m] == ' ' && i_m - i == 2 && j_m - j == -2 ){
+            kingJumpBackwardLeft(color, i, j, i_m, j_m);
+        }
+        //Jump Backward Right
+        if(board[i+1][j+1] == 'B' && board[i_m][j_m] == ' ' && i_m - i == 2 && j_m - j == 2 ){
+            kingJumpBackwardRight(color, i, j, i_m, j_m);
+        }
     }
-    }while(!(validMove))
+        
+    }
+    }while(!(validMove));
+}
+
+bool Game::kingDoubleJumpCheck(string color, int i, int j){
+    if(color == "black"){
+        if(checkValidRow(i+1) && checkValidRow(i+2) && checkValidColumn(j+1) && checkValidColumn(j+2) &&board[i+1][j+1] == 'R' && board[i + 2][j + 2] == ' '){
+            return true;
+        }
+        if(checkValidRow(i+1) && checkValidRow(i+2) && checkValidColumn(j-1) && checkValidColumn(j-2) && board[i+1][j-1] == 'R' && board[i + 2][j - 2] == ' '){
+            return true;
+        }
+        if(checkValidRow(i-1) && checkValidRow(i-2) && checkValidColumn(j-1) && checkValidColumn(j-2) && board[i - 1][j - 1] == 'R' && board[i - 2][j -2] == ' '){
+            return true;
+        }
+        if(checkValidRow(i-1) && checkValidRow(i-2) && checkValidColumn(j+1) && checkValidColumn(j+2) && board[i - 1][j + 1] == 'R' && board[i - 2][j + 2] == ' '){
+            return true;
+        }
+    }
+    if(color == "red"){
+        if(checkValidRow(i+1) && checkValidRow(i+2) && checkValidColumn(j+1) && checkValidColumn(j+2) &&board[i+1][j+1] == 'B' && board[i + 2][j + 2] == ' '){
+            return true;
+        }
+        if(checkValidRow(i+1) && checkValidRow(i+2) && checkValidColumn(j-1) && checkValidColumn(j-2) && board[i+1][j-1] == 'B' && board[i + 2][j - 2] == ' '){
+            return true;
+        }
+        if(checkValidRow(i-1) && checkValidRow(i-2) && checkValidColumn(j-1) && checkValidColumn(j-2) && board[i - 1][j - 1] == 'B' && board[i - 2][j -2] == ' '){
+            return true;
+        }
+        if(checkValidRow(i-1) && checkValidRow(i-2) && checkValidColumn(j+1) && checkValidColumn(j+2) && board[i - 1][j + 1] == 'B' && board[i - 2][j + 2] == ' '){
+            return true;
+        }
+}
+return false;
+}
+
+bool Game::kingJumpForwardRight(string color, int &i, int &j, int i_m, int j_m){
+if(color == "black"){
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'Q';
+            board[i - 1][j + 1] = ' ';
+            i = i_m;
+            j = j_m;
+            redPiecesRemaining--;
+} else{
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'K';
+            board[i - 1][j + 1] = ' ';
+            i = i_m;
+            j = j_m;
+            blackPiecesRemaining--;
+}
+
+return true;
+            
+}
+
+bool Game::kingJumpForwardLeft(string color, int &i, int &j, int i_m, int j_m){
+if(color == "black"){
+    cout << "Jump forward left" << '\n';
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'Q';
+            board[i - 1][j - 1] = ' ';
+            i = i_m;
+            j = j_m;
+            redPiecesRemaining--;
+} else{
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'K';
+            board[i - 1][j - 1] = ' ';
+            i = i_m;
+            j = j_m;
+            blackPiecesRemaining--;
+}
+return true;
+}   
+
+bool Game::kingJumpBackwardLeft(string color, int &i, int &j, int i_m, int j_m){
+if(color == "black"){
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'Q';
+            board[i + 1][j - 1] = ' ';
+            i = i_m;
+            j = j_m;
+            redPiecesRemaining--;
+} else{
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'K';
+            board[i + 1][j - 1] = ' ';
+            i = i_m;
+            j = j_m;
+            blackPiecesRemaining--;
+}
+return true;    
+}
+
+bool Game::kingJumpBackwardRight(string color, int &i, int &j, int i_m, int j_m){
+ if(color == "black"){
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'Q';
+            board[i + 1][j + 1] = ' ';
+            i = i_m;
+            j = j_m;
+            redPiecesRemaining--;
+} else{       
+            cout << "Jumped Backwards RIght" << '\n';
+            board[i][j] = ' ';
+            board[i_m][j_m] = 'K';
+            board[i + 1][j + 1] = ' ';
+            i = i_m;
+            j = j_m;
+            cout << "i " << i << '\n';
+            cout << "j " << j   << '\n';
+            blackPiecesRemaining--;
+}
+return true;     
 }

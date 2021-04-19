@@ -21,5 +21,6 @@ g++ main.cpp -o game
 In Progress
 TODO:
 
-*Implement "King" functionality - forward, backward movement for pieces that have reached the end of the board
+- Code Clean Up & Refactoring
+- Testing
 
